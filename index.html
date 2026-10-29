@@ -969,7 +969,7 @@ function renderAll(){
 }
 function strip(){
   const nCli=TEM_BASE?carteira().size:new Set(RC.map(x=>x.c)).size,nSup=new Set((TEM_BASE?LK:RC).map(x=>x.s)).size;
-  document.getElementById('strip').innerHTML=`<span>${esc(V.src)} · vendas de 01 a ${dd(ULT)}/${ANO} · ${nf0.format(nCli)} clientes na carteira${TEM_BASE?' de '+MESES[MESN-1]:''} · ${nSup} supervisões de oportunidade (lista fixa)</span>${TEM_BASE?`<span>Carteira: ${esc(B.src)} (${BMES[0]}–${BMES[B.meses.length-1]})</span>`:''}${METAS_OK?`<span>Metas: ${esc(V.metasSrc)} (${V.metasMes})</span>`:''}<span>Sem planilha de estoque: saldo por filial fica de fora.</span>`;
+  document.getElementById('strip').innerHTML=`<span>${esc(V.src)} · vendas de 01 a ${dd(ULT)}/${ANO} · ${nf0.format(nCli)} clientes na carteira${TEM_BASE?' de '+MESES[MESN-1]:''} · ${nSup} supervisões de oportunidade (lista fixa)</span>${TEM_BASE?`<span>Carteira: ${esc(B.src)} (${BMES[0]}–${BMES[B.meses.length-1]})</span>`:''}${METAS_OK?`<span>Metas: ${esc(V.metasSrc)} (${V.metasMes})</span>`:''}${Object.keys(EST).length?`<span>Estoque: ${Object.keys(EST).sort((a,b)=>a-b).map(f=>`Filial ${f} (${esc(EST[f].pos)})`).join(' · ')}</span>`:'<span>Sem planilha de estoque: saldo por filial fica de fora.</span>'}`;
   document.getElementById('upd').innerHTML=`Última atualização das vendas<br><b>${esc(V.atualizado.replace(' ',' · '))}</b>`;
 }
 function toast(t){const e=document.getElementById('toast');e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,2600);}
