@@ -176,8 +176,11 @@ td .cn{min-width:170px}
 td.mx-cur,th.mx-cur{background:color-mix(in srgb,var(--yel) 22%,transparent)}
 td.mx-zero{color:var(--bad);font-weight:700}
 @media (min-width:1100px){
-  .mixwin{position:fixed;z-index:56;top:calc(env(safe-area-inset-top,0px) + 16px);right:676px;width:min(620px,calc(100vw - 700px));max-height:calc(100vh - 32px - env(safe-area-inset-top,0px));overflow:auto;box-shadow:0 12px 36px rgba(0,0,0,.28)}
+  .mixwin.float{position:fixed;z-index:56;top:calc(env(safe-area-inset-top,0px) + 24px);left:50%;transform:translateX(-50%);width:min(1080px,calc(100vw - 48px));max-height:calc(100vh - 48px - env(safe-area-inset-top,0px));overflow:auto;padding:22px 24px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+  .mixwin.float .tw{margin:0 -24px;padding:0 24px}
+  .mixwin .mx-tog{display:inline-flex}
 }
+.mx-tog{display:none}
 
 /* Tela inicial */
 .splash{position:fixed;inset:0;z-index:80;background:linear-gradient(140deg,#0000B4,#00007A);color:#fff;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding-block:calc(env(safe-area-inset-top,0px) + 32px) calc(env(safe-area-inset-bottom,0px) + 32px)}
@@ -894,6 +897,7 @@ function ficha(cod){
 /* ---------- Mix de oportunidade (janela ao lado da ficha) ---------- */
 function renderMix(){
   const el=document.getElementById('mixwin');if(!el||st.ficha==null)return;
+  el.classList.toggle('float',st.mxFloat!==false);
   const cod=st.ficha,c=CLI[cod],f=st.mx.f,E=EST[f],ref=ramoRef(c.ramo);
   const P=new Map();for(const x of R){if(x.c!==cod)continue;const a=P.get(x.p)||{v:0,q:0,ult:0};a.v+=x.v;a.q+=x.q;a.ult=Math.max(a.ult,x.d);P.set(x.p,a);}
   const item=p=>{const it=E&&E.itens[p];
@@ -925,7 +929,8 @@ function renderMix(){
   const nEst=E?Object.values(E.itens).filter(a=>a[0]>0).length:0;
   const vazio={ofer:E?'Nenhum SKU com estoque nesta filial que ele ainda não compra.':'Nenhum SKU para sugerir.',ja:'Ele não comprou SKUs Mars no mês.',est:'Sem planilha de estoque desta filial.'}[st.mx.tab];
   el.innerHTML=`<div class="mx-h"><h4>Mix de oportunidade</h4>
-    <div class="seg">${FILIAIS.map(n=>`<button type="button" data-mxf="${n}" class="${n===f?'on':''}">Filial ${n}</button>`).join('')}</div></div>
+    <div class="seg">${FILIAIS.map(n=>`<button type="button" data-mxf="${n}" class="${n===f?'on':''}">Filial ${n}</button>`).join('')}</div>
+    <button type="button" class="btn mx-tog" data-mxtog>${st.mxFloat!==false?'Recolher para a ficha':'Ampliar no centro'}</button></div>
   <div class="cs">Filial ${f} · ${FILIAL_NOME[f]}${f===st.mx.pad?' · filial do cliente':''}</div>
   ${!MARS_CLI.has(cod)?`<div class="band bad">Cliente fora da planilha de SKUs (${esc(V.src)}): não comprou Mars em ${MESES[MESN-1]}, então "Já compra" fica vazio.</div>`:''}
   ${E?'':`<div class="band op">Sem planilha de estoque da Filial ${f}. "Oferecer" mostra os SKUs pela penetração no ramo, sem saldo.</div>`}
@@ -989,8 +994,8 @@ function temaIcon(){
 
 /* ---------- Eventos ---------- */
 document.addEventListener('click',e=>{
-  const mx=e.target.closest('[data-mxf],[data-mxt],[data-mxfam]');
-  if(mx){const s=mx.dataset;if(s.mxf){st.mx.f=+s.mxf;st.mx.fam=null;}if(s.mxt){st.mx.tab=s.mxt;st.mx.fam=null;}if(s.mxfam!=null)st.mx.fam=s.mxfam||null;renderMix();return;}
+  const mx=e.target.closest('[data-mxf],[data-mxt],[data-mxfam],[data-mxtog]');
+  if(mx){const s=mx.dataset;if(s.mxtog!=null)st.mxFloat=st.mxFloat===false;if(s.mxf){st.mx.f=+s.mxf;st.mx.fam=null;}if(s.mxt){st.mx.tab=s.mxt;st.mx.fam=null;}if(s.mxfam!=null)st.mx.fam=s.mxfam||null;renderMix();return;}
   const t=e.target.closest('[data-tab],[data-rank],[data-rkrca],[data-rksup],[data-copy],[data-semst],[data-cidord],[data-cid],[data-more],[data-ficha],[data-clist],[data-pard],[data-pmk],[data-cal],[data-calq],[data-day],[data-eq],[data-act],#fPer,#sideX,#handle,#sideScrim,#dX,#dScrim,#bEq,#bTema,#bFull');
   const pop=document.getElementById('calPop');
   if(st.calOpen&&pop&&!e.target.closest('#calPop')&&!e.target.closest('#fPer')){st.calOpen=false;st.calA=null;pop.hidden=true;}
