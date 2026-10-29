@@ -176,8 +176,10 @@ td .cn{min-width:170px}
 td.mx-cur,th.mx-cur{background:color-mix(in srgb,var(--yel) 22%,transparent)}
 td.mx-zero{color:var(--bad);font-weight:700}
 @media (min-width:1100px){
-  .mixwin.float{position:fixed;z-index:56;top:calc(env(safe-area-inset-top,0px) + 24px);left:50%;transform:translateX(-50%);width:min(1080px,calc(100vw - 48px));max-height:calc(100vh - 48px - env(safe-area-inset-top,0px));overflow:auto;padding:22px 24px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+  /* Janela à esquerda da ficha (660 px): ocupa o espaço livre, centralizada nele; em telas estreitas encosta um pouco na ficha */
+  .mixwin.float{--mxw:clamp(760px,calc(100vw - 692px),1080px);position:fixed;z-index:56;top:calc(env(safe-area-inset-top,0px) + 24px);left:max(16px,calc((100vw - 660px - var(--mxw)) / 2));width:min(var(--mxw),calc(100vw - 32px));max-height:calc(100vh - 48px - env(safe-area-inset-top,0px));overflow:auto;padding:22px 24px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
   .mixwin.float .tw{margin:0 -24px;padding:0 24px}
+  .mixwin.float th{white-space:normal}
   .mixwin .mx-tog{display:inline-flex}
 }
 .mx-tog{display:none}
