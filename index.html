@@ -285,6 +285,12 @@ if(B) for(const k in B.cli){const a=B.cli[k];
 const RCA={}; for(const k in V.rca) RCA[k]={cod:+k,nome:V.rca[k]||('RCA '+k),gestor:RCA_GESTOR.test(V.rca[k])};
 const SUP={}; for(const k in V.sup){const c=+k;
   SUP[k]={cod:c,nome:V.sup[k],painel:SUPERVISOES_PAINEL.has(c),ger:SUP2GER[c]||(SUPERVISOES_PAINEL.has(c)?SEM_GER:null)};}
+// Relação geral de equipes e RCAs (8127 e lista fixa de supervisões): aparecem mesmo sem venda no mês
+// sem nome na 8281 nem na 8127: usa o nome da gerência (ex.: 12 e 50 → DIST. SUL/EXTREMO SUL)
+const novaSup=(c,nome)=>{if(!SUP[c])SUP[c]={cod:c,nome:nome||(SUP2GER[c]?'DIST. '+SUP2GER[c].replace(/^\d+\s*-\s*GERÊNCIA DIST\.\s*/i,''):'Supervisão '+c),painel:SUPERVISOES_PAINEL.has(c),ger:SUP2GER[c]||(SUPERVISOES_PAINEL.has(c)?SEM_GER:null)};};
+const REL=(V.metas||[]).filter(a=>SUPERVISOES_PAINEL.has(a[1])&&!RCA_GESTOR.test(a[4]||'')).map(a=>({r:a[0],s:a[1]}));
+for(const a of V.metas||[]){novaSup(a[1],a[5]);if(!RCA[a[0]])RCA[a[0]]={cod:a[0],nome:a[4]||('RCA '+a[0]),gestor:RCA_GESTOR.test(a[4]||'')};}
+SUPERVISOES_PAINEL.forEach(c=>novaSup(c));
 const PROD={}; for(const k in V.prod){const a=V.prod[k]; PROD[k]={cod:+k,desc:a[0].replace(/^MARS\s+/i,''),emb:a[1],marca:a[2]};}
 // fora = cliente interno, supervisão fora da lista ou RCA gestor: entra no sell-out, não na positivação
 const R=V.rows.map(a=>{const c=CLI[a[1]],r=RCA[a[2]],s=SUP[a[3]];
@@ -482,7 +488,11 @@ function renderFilters(){
   const gers=[...new Set(Object.values(SUP).map(s=>s.ger).filter(Boolean))].sort();
   let sups=Object.values(SUP).filter(s=>!st.ger||s.ger===st.ger).sort((a,b)=>a.cod-b.cod);
   const S=scopeSups();
-  const rcas=[...new Set(R.filter(x=>!S||S.has(x.s)).map(x=>x.r))].map(k=>RCA[k]).sort((a,b)=>a.nome.localeCompare(b.nome));
+  // RCAs com venda, com carteira ou da relação da 8127, mesmo sem venda no mês
+  const rk=new Set(R.filter(x=>!S||S.has(x.s)).map(x=>x.r));
+  for(const l of LK) if(!S||S.has(l.s)) rk.add(l.r);
+  for(const x of REL) if(!S||S.has(x.s)) rk.add(x.r);
+  const rcas=[...rk].map(k=>RCA[k]).filter(Boolean).sort((a,b)=>a.nome.localeCompare(b.nome));
   const geral=st.tab==='geral', semPer=['mix','parado','metas','sem','cidades'].includes(st.tab);
   let h='';
   if(!geral) h+=`<div class="fld"><label for="fGer">Gerência</label><select id="fGer" ${st.gerLock?'disabled title="Para trocar, use o botão Equipe"':''}><option value="">Todas</option>${gers.map(g=>`<option ${g===st.ger?'selected':''} value="${esc(g)}">${esc(gerCurto(g))}</option>`).join('')}</select></div>`;
@@ -598,6 +608,9 @@ function rankData(by,rows){
     if(!x.fora){g.vc+=x.v;let s=g.cli.get(x.c);if(!s)g.cli.set(x.c,s=new Set());s.add(x.p);}}
   // quem tem meta e ainda não vendeu também aparece
   for(const m of metasScope()){const g=get(by==='rca'?m.r:m.s);g.mv+=m.v;g.mp+=m.p;if(!g.sups.has(m.s))g.sups.set(m.s,0);}
+  // relação geral: todo RCA e toda equipe do escopo entram, com zero se não venderam
+  for(const x of REL) if(linkOk(x)){const g=get(by==='rca'?x.r:x.s);if(!g.sups.has(x.s))g.sups.set(x.s,0);}
+  if(by!=='rca'&&st.rca==null) SUPERVISOES_PAINEL.forEach(c=>{if(!SC.sups||SC.sups.has(c))get(c);});
   return [...G.values()].map(g=>{const n=g.cli.size,tk=n?g.vc/n:0,pc=[...g.cart].filter(c=>g.cli.has(c)).length;
     return {...g,pos:n,sku:n?[...g.cli.values()].reduce((a,s)=>a+s.size,0)/n:0,tk,nc:g.cart.size,pc,cob:g.cart.size?pc/g.cart.size:0,pot:(g.cart.size-pc)*tk};})
     .sort((a,b)=>b.v-a.v||b.mv-a.mv||b.nc-a.nc);
